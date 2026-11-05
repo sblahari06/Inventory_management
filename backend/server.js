@@ -1,5 +1,8 @@
+const { readFile } = require("node:fs/promises");
+const path = require("node:path");
 const express = require("express");
 const cors = require("cors");
+const pool = require("./db");
 
 const app = express();
 const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
@@ -29,6 +32,16 @@ app.get("/health", (_req, res) => {
 
 const port = process.env.PORT || 3000;
 
-app.listen(port, "0.0.0.0", () => {
-    console.log(`Server has started on port ${port}`);
+async function startServer() {
+    const schema = await readFile(path.join(__dirname, "schema.sql"), "utf8");
+    await pool.query(schema);
+
+    app.listen(port, "0.0.0.0", () => {
+        console.log(`Server has started on port ${port}`);
+    });
+}
+
+startServer().catch((error) => {
+    console.error("Failed to initialize database and start server:", error);
+    process.exit(1);
 });

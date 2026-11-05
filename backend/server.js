@@ -2,8 +2,12 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
-app.use(cors());
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 const categories = require("./categories");
@@ -19,8 +23,12 @@ app.use("/suppliers", suppliers);
 app.use("/products",products);
 app.use("/transactions",transactions);
 
-// Keep your other API imports and app.use() statements here.
+app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+});
 
-app.listen(3000, () => {
-    console.log("Server has started on port 3000");
+const port = process.env.PORT || 3000;
+
+app.listen(port, "0.0.0.0", () => {
+    console.log(`Server has started on port ${port}`);
 });
